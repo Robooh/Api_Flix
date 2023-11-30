@@ -26,6 +26,70 @@
           }
         }
       }
+    },
+    "/movies/{id}": {
+      "put": {
+        "tags": ["Movie"],
+        "summary": "Atualizar um filme",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "require": true,
+            "description": "ID do filme a ser atualizado",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "require": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MovieInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Filme atualizado com sucesso"
+          },
+          "404": {
+            "description": "Filme não encontrado"
+          },
+          "500": {
+            "description": "Falha ao atualizar o registro do filme"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Movie"],
+        "summary": "Remover um filme",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "require": true,
+            "description": "ID do filme a ser removido",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filme removido com sucesso"
+          },
+          "404": {
+            "description": "Filme não encontrado"
+          },
+          "500": {
+            "description": "Não foi possivel remover o filme"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -48,14 +112,14 @@
           "genres": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "integer",
-                    "description": "Id do Genero" 
-                },
-                "name": {
-                    "type": "string",
-                    "description": "Nome do gênero"
-                }
+              "id": {
+                "type": "integer",
+                "description": "Id do Genero"
+              },
+              "name": {
+                "type": "string",
+                "description": "Nome do gênero"
+              }
             }
           },
 
@@ -66,19 +130,52 @@
           "languages": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "integer",
-                    "description": "Id do idioma" 
-                },
-                "name": {
-                    "type": "string",
-                    "description": "Nome do idioma"
-                }
+              "id": {
+                "type": "integer",
+                "description": "Id do idioma"
+              },
+              "name": {
+                "type": "string",
+                "description": "Nome do idioma"
+              }
             }
           },
 
           "oscar_count": {
             "type": "integer",
+            "description": "Quantidade de Oscars ganhos pelo filme"
+          },
+          "release_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de lançamento do filme"
+          }
+        }
+      },
+      "MovieInput": {
+        "type": "object",
+        "require": [
+          "title",
+          "genre_id",
+          "language_id",
+          "oscar_count",
+          "release_date"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Título do filme"
+          },
+          "genre_id": {
+            "type": "integer",
+            "description": "Id do Genero do filme"
+          },
+          "language_id": {
+            "type": "integer",
+            "description": "Id da lingua do filme"
+          },
+          "oscar_count": {
+            "type": "string",
             "description": "Quantidade de Oscars ganhos pelo filme"
           },
           "release_date": {
