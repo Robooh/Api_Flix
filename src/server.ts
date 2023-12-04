@@ -104,7 +104,7 @@ app.get("/movies/:genreName", async (req, res) => {
         const genderFiltered = await prisma.movie.findMany({
             include: {
                 genres: true,
-                languages: true
+                languages: true,
             },
             where: {
                 genres: {
@@ -118,6 +118,42 @@ app.get("/movies/:genreName", async (req, res) => {
         res.status(200).send(genderFiltered);
     } catch (error) {
         return res.status(500).send({ message: "Houve um erro durante o filtro" });
+    }
+});
+
+app.put("/genres/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+    
+    try {
+        const genre = await prisma.genre.findUnique({
+            where: { id: Number(id) },
+        });
+
+        if (!genre) {
+            return res.status(404).send({ message: "Gênero não encontrado." });
+        }
+
+        const existingGenre = await prisma.genre.findFirst({
+            where: { 
+                name: { equals: name, mode: "insensitive" },
+                id: { not: Number(id) } 
+            },
+        });
+
+        if(existingGenre){
+            return res.status(409).send({ message: "Este nome de gênero já existe." });
+        }
+
+        const updatedGenre = await prisma.genre.update({
+            where: { id: Number(id) },
+            data: { name },
+        });
+
+        res.status(200).json(updatedGenre);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Houve um problema ao atualizar o gênero." });
     }
 });
 
