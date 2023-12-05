@@ -124,7 +124,7 @@ app.get("/movies/:genreName", async (req, res) => {
 app.put("/genres/:id", async (req, res) => {
     const { id } = req.params;
     const { name } = req.body;
-    
+
     try {
         const genre = await prisma.genre.findUnique({
             where: { id: Number(id) },
@@ -135,14 +135,16 @@ app.put("/genres/:id", async (req, res) => {
         }
 
         const existingGenre = await prisma.genre.findFirst({
-            where: { 
+            where: {
                 name: { equals: name, mode: "insensitive" },
-                id: { not: Number(id) } 
+                id: { not: Number(id) },
             },
         });
 
-        if(existingGenre){
-            return res.status(409).send({ message: "Este nome de gênero já existe." });
+        if (existingGenre) {
+            return res
+                .status(409)
+                .send({ message: "Este nome de gênero já existe." });
         }
 
         const updatedGenre = await prisma.genre.update({
@@ -153,8 +155,38 @@ app.put("/genres/:id", async (req, res) => {
         res.status(200).json(updatedGenre);
     } catch (error) {
         console.error(error);
-        res.status(500).send({ message: "Houve um problema ao atualizar o gênero." });
+        res
+            .status(500)
+            .send({ message: "Houve um problema ao atualizar o gênero." });
     }
+});
+
+app.post("/genres", async (req, res) => {
+    const { name } = req.body;
+
+    try {
+        const existingGenre = await prisma.genre.findFirst({
+            where: { name: { equals: name, mode: "insensitive" } },
+        });
+
+        if (existingGenre) {
+            return res.status(409).send({
+                message:
+          "Um genero com o mesmo valor ja foi adicionado ao banco de daos",
+            });
+        }
+
+        await prisma.genre.create({
+            data: {
+                name,
+            },
+        });
+    } catch (error) {
+        return res.status(500).send({
+            message: "Ocorreu um erro ao colocar os novos valores ",
+        });
+    }
+    res.status(201).send();
 });
 
 app.listen(port, () => {
