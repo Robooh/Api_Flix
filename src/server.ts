@@ -189,6 +189,27 @@ app.post("/genres", async (req, res) => {
     res.status(201).send();
 });
 
+app.get("/genres", async (_, res) => {
+    const generos = await prisma.genre.findMany({});
+    res.json(generos);
+});
+
+app.delete("/genres/:id",async (req,res) => {
+    const id = Number (req.params.id);
+
+    try{
+        const genre = await prisma.genre.findUnique({ where: { id } });
+        if(!genre){
+            return res.status(404).send({ message: "O genero não foi encontrado" });
+        }
+        await prisma.genre.delete({where: { id }});
+    }catch(error){
+        return res.status(500).send({ message: "Ocorrou um erro inesperado em nosso servidor,não se preocupe isso não e culpa sua" });
+    }
+    res.status(200).send();
+});
+
+
 app.listen(port, () => {
     console.log(`Servidor em execução em http://localhost ${port}`);
 });
