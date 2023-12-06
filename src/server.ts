@@ -21,11 +21,24 @@ app.get("/movies", async (_, res) => {
         },
     });
 
-    res.json(movies);
+    const total = movies.length;
+
+    let totalDuration = 0;
+    for (const movie of movies) {
+        totalDuration += movie.duration;
+    }
+    const mediaDuration = total > 0 ? totalDuration / total : 0;
+
+    res.json({
+        total,
+        mediaDuration,
+        movies,
+    });
 });
 
 app.post("/movies", async (req, res) => {
-    const { title, genre_id, language_id, oscar_count, release_date } = req.body;
+    const { title, genre_id, language_id, oscar_count, release_date, duration } =
+    req.body;
 
     try {
         const movieWithSameTitle = await prisma.movie.findFirst({
@@ -45,6 +58,7 @@ app.post("/movies", async (req, res) => {
                 language_id: language_id,
                 oscar_count: oscar_count,
                 release_date: new Date(release_date),
+                duration: duration,
             },
         });
     } catch (error) {
@@ -194,22 +208,30 @@ app.get("/genres", async (_, res) => {
     res.json(generos);
 });
 
-app.delete("/genres/:id",async (req,res) => {
-    const id = Number (req.params.id);
+app.delete("/genres/:id", async (req, res) => {
+    const id = Number(req.params.id);
 
-    try{
+    try {
         const genre = await prisma.genre.findUnique({ where: { id } });
-        if(!genre){
+        if (!genre) {
             return res.status(404).send({ message: "O genero não foi encontrado" });
         }
-        await prisma.genre.delete({where: { id }});
-    }catch(error){
-        return res.status(500).send({ message: "Ocorrou um erro inesperado em nosso servidor,não se preocupe isso não e culpa sua" });
+        await prisma.genre.delete({ where: { id } });
+    } catch (error) {
+        return res.status(500).send({
+            message:
+        "Ocorrou um erro inesperado em nosso servidor,não se preocupe isso não e culpa sua",
+        });
     }
     res.status(200).send();
 });
 
-
 app.listen(port, () => {
     console.log(`Servidor em execução em http://localhost ${port}`);
 });
+
+// No código abaixo, estamos buscando todos os filmes do banco de dados e em seguida, calculando a quantidade total de filmes e a média de duração.
+
+// 2 - A quantidade total de filmes é simplesmente o número de filmes que foram retornados pela consulta.
+
+// 3 - A média de duração é calculada somando a duração de todos os filmes e dividindo pelo total de filmes. Se não há filmes, definimos a média de duração como 0 para evitar divisão por zero.
