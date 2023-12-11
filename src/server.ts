@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../swagger.json";
 
+
 const port = 3000;
 const app = express();
 const prisma = new PrismaClient();
@@ -10,7 +11,7 @@ const prisma = new PrismaClient();
 app.use(express.json());
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-app.get("/movies", async (_, res) => {
+app.get("/movies/data", async (_, res) => {
     const movies = await prisma.movie.findMany({
         orderBy: {
             title: "asc",
@@ -35,6 +36,75 @@ app.get("/movies", async (_, res) => {
         movies,
     });
 });
+
+app.get("/movies/date", async (_, res) => {
+    try {
+        const movies = await prisma.movie.findMany({
+            orderBy:[
+                { 
+                    release_date: "desc"
+                }
+            ],
+            include: {
+                genres: true,
+                languages: true,
+            }
+        });
+
+        res.json(movies);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Houve um problema ao buscar os filmes." });
+    }
+});
+
+app.get("/movies", async (req, res) => {
+    const { sort, language } = req.query;
+
+    let orderBy = undefined;
+    if (sort === "title") {
+        orderBy = {
+            title: "asc",
+        };
+    } else if (sort === "release_date") {
+        orderBy = {
+            release_date: "asc",
+        };
+    }
+
+    let where = undefined;
+    if (language) {
+        where = {
+            languages: {
+                some: {
+                    code: {
+                        equals: language,
+                        mode: "insensitive"
+                    }
+                }
+            }
+        };
+    }
+
+    try {
+        const movies = await prisma.movie.findMany({
+            orderBy: orderBy,
+            where: where,
+            include: {
+                genres: true,
+                languages: true,
+            },
+        });
+
+        res.json(movies);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Houve um problema ao buscar os filmes." });
+    }
+});
+
+
+
 
 app.post("/movies", async (req, res) => {
     const { title, genre_id, language_id, oscar_count, release_date, duration } =
@@ -229,9 +299,3 @@ app.delete("/genres/:id", async (req, res) => {
 app.listen(port, () => {
     console.log(`Servidor em execução em http://localhost ${port}`);
 });
-
-// No código abaixo, estamos buscando todos os filmes do banco de dados e em seguida, calculando a quantidade total de filmes e a média de duração.
-
-// 2 - A quantidade total de filmes é simplesmente o número de filmes que foram retornados pela consulta.
-
-// 3 - A média de duração é calculada somando a duração de todos os filmes e dividindo pelo total de filmes. Se não há filmes, definimos a média de duração como 0 para evitar divisão por zero.
